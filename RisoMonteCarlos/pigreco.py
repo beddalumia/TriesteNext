@@ -16,7 +16,7 @@ plot_font = {'family': 'Arial',
 class myGUI:
     def __init__(self, win, ims):
         self.window=win
-        x0, y0 = 100, 250
+        x0, y0 = 80, 250
         #---- Grains label and entry -------
         self.lbl0 = Label(win, text='Numero di chicchi')
         self.lbl0.config(font=('Arial', 22))
@@ -26,19 +26,26 @@ class myGUI:
         self.Nriso.insert(END, str(0))
         self.t_0 = float(self.Nriso.get())
         self.ims = ims
+        # Count labels
+        self.inlabel  = Label(win, text="Dentro: ")
+        self.outlabel = Label(win, text="Fuori: ")
+        self.inlabel.config(font=('Arial',22))
+        self.outlabel.config(font=('Arial',22))
+        self.inlabel.place(x=x0, y=y0+200)
+        self.outlabel.place(x=x0, y=y0+250)
         # PI label
         self.pi = 0.0
         self.pilabel = Label(win, text="π =")
         self.pilabel.config(font=('LatinModern', 32))
-        self.pilabel.place(x=x0, y=y0+200)
+        self.pilabel.place(x=x0, y=y0+350)
         # Accuracy label
         self.piacclabel = Label(win,text="Precisione: ")
         self.piacclabel.config(font=('Arial',22))
-        self.piacclabel.place(x=x0,y=y0+250)
+        self.piacclabel.place(x=x0,y=y0+400)
         # Computational Effort Label
         self.effortlabel = Label(win,text="👀")
         self.effortlabel.config(font=("Arial",60))
-        self.effortlabel.place(x=x0, y=y0+300)
+        self.effortlabel.place(x=x0, y=y0+500)
         
         # Compute button
         self.btn1 = Button(win, text='Calcola')
@@ -61,7 +68,7 @@ class myGUI:
 
         # Switch for rice or scatterplot (also lentils?)
         self.switch_frame = Frame(win)
-        self.switch_frame.place(x=100,y=120)
+        self.switch_frame.place(x=x0,y=120)
         self.switch_variable = StringVar(value="Riso")
         self.riso_button = Radiobutton(self.switch_frame, text="Riso", variable=self.switch_variable,
                                        indicatoron=False, value="Riso", width=8)
@@ -78,11 +85,15 @@ class myGUI:
             self.ax.cla()
             self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=2   ,color="xkcd:red") )
             self.ax.text(0.2,0.5,"TROPPO DIFFICILE",fontdict=plot_font)
+            self.inlabel.config(text="Dentro: ?")
+            self.outlabel.config(text="Fuori: ?")
             self.pilabel.config(text="π = ?")
             self.piacclabel.config(text="Precisione: ?")
             self.effortlabel.config(text="💀")
             self.plots.draw()
         elif(Nriso<=0):
+            self.inlabel.config(text="Dentro: ?")
+            self.outlabel.config(text="Fuori: ?")
             self.pilabel.config(text="π = ?")
             self.piacclabel.config(text="Precisione: ?")
             self.effortlabel.config(text="Maddai! 🤡")
@@ -109,12 +120,14 @@ class myGUI:
         Nriso = int(self.Nriso.get())
         x = np.random.random(Nriso)
         y = np.random.random(Nriso)
-        self.pi=0
+        count=0
         for i in range(len(x)):
-          if ( np.sqrt( (x[i]-0.5)**2+(y[i]-0.5)**2 )<0.5 ): self.pi+=1.0
-        self.pi = self.pi/Nriso * 4
-        self.pilabel.config(text="π = "+str(self.pi))
-        self.piacclabel.config(text="Precisione: "+f"{100*(1-abs(self.pi-np.pi)/np.pi) :.5f}"+"%")
+          if ( np.sqrt( (x[i]-0.5)**2+(y[i]-0.5)**2 )<0.5 ): count+=1.0
+        self.pi = count/Nriso * 4
+        self.inlabel.config(text="Dentro: "+str(int(count)))
+        self.outlabel.config(text="Fuori: "+str(int(Nriso-count)))
+        self.pilabel.config(text="π = "+f"{self.pi:.5f}")
+        self.piacclabel.config(text="Precisione: "+f"{100*(1-abs(self.pi-np.pi)/np.pi):.2f}"+"%")
         # Reset Plot
         self.ax.cla()
         self.ax.set_xlim(0,1)
@@ -127,7 +140,7 @@ class myGUI:
             self.ax.text(0.1,0.5,"Troppi chicchi, immaginali!",fontdict=plot_font)
             self.plots.draw()
             return
-        if(self.switch_variable.get()=="Riso" and Nriso<5000):
+        if(self.switch_variable.get()=="Riso" and Nriso<2500):
             self.ax.scatter(x,y,marker="")
             for xi, yi in zip(x,y):
                 i =  np.random.randint(0,7)
@@ -161,7 +174,7 @@ def close_app():
    window.destroy()
    quit()
 button_close = Button(window, text = "Exit", command = close_app)
-button_close.place(x=100, y=50)
+button_close.place(x=80, y=50)
 
 # Configure the global window
 window.title('Calcoliamo PI-GRECO')
