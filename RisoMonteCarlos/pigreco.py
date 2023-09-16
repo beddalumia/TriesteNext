@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 
-errorfont = {'family': 'serif',
+errorfont = {'family': 'Arial',
             'color':  'white',
             'weight': 'bold',
-            'size': 40
+            'size': 32
             }
 
 class myGUI:
     def __init__(self, win, ims):
+        self.window=win
         x0, xt0, y0, yt0 = 100, 100, 250, 300
         #---- Grains label and entry -------
         self.lbl0 = Label(win, text='Numero di chicchi')
@@ -28,15 +29,15 @@ class myGUI:
         # PI label and accuracy label
         self.pi = 0.0
         self.pilabel = Label(win, text="π =")
-        self.pilabel.config(font=('LatinModern', 22))
+        self.pilabel.config(font=('LatinModern', 32))
         self.pilabel.place(x=x0, y=y0+200)
         #
-        self.piacclabel = Label(win,text="Precisione = ")
+        self.piacclabel = Label(win,text="Precisione: ")
         self.piacclabel.config(font=('Arial',22))
         self.piacclabel.place(x=x0,y=y0+250)
         
         # Computational Effort Label
-        self.effortlabel = Label(win,text=":)")
+        self.effortlabel = Label(win,text="👀")
         self.effortlabel.config(font=("Arial",60))
         self.effortlabel.place(x=x0, y=y0+300)
         
@@ -72,54 +73,86 @@ class myGUI:
 
         
     def update(self, event):
-        self.ax.cla()
-        self.ax.set_xlim(0,1)
-        self.ax.set_ylim(0,1)
-        self.ax.set_aspect('equal')
+
         Nriso = int(self.Nriso.get())
 
-        #ERROR IF TOO MANY GRAINS
+        #ERROR IF TOO MANY/FEW GRAINS
         if(Nriso>10**6):
+            self.ax.cla()
             self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=2   ,color="red") )
-            self.ax.text(0.05,0.5,"TROPPO DIFFICILE :(",fontdict=errorfont)
+            self.ax.text(0.2,0.5,"TROPPO DIFFICILE",fontdict=errorfont)
+            self.pilabel.config(text="π = ?")
+            self.piacclabel.config(text="Precisione: ?")
+            self.effortlabel.config(text="💀")
+            self.plots.draw()
+        elif(Nriso<=0):
+            self.pilabel.config(text="π = ?")
+            self.piacclabel.config(text="Precisione: ?")
+            self.effortlabel.config(text="Maddai! 🤡")
         else:
             
             if(Nriso<100):
-                self.effortlabel.config(text="Facile :)")
+                self.effortlabel.config(text="Facile! 🙃")
             elif(Nriso<1000):
-                self.effortlabel.config(text="Un attimo :/")
+                self.ax.cla()
+                self.effortlabel.config(text="⏳...")
+                self.window.update()
+                self.effortlabel.config(text="Oook! 🥲")
             else:
-                self.effortlabel.config(text="Difficile :(")
-            x = np.random.random(Nriso)
-            y = np.random.random(Nriso)
-            self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=2   ,color="lightskyblue") )
-            self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=0.5 ,color="tab:blue") )
-            if(self.switch_variable.get()=="Riso" and Nriso<5000):
-                self.ax.scatter(x,y,marker="")
-                for xi, yi in zip(x,y):
-                    i =  np.random.randint(0,7)
-                    image=self.ims[i]
-                    im = OffsetImage(image, zoom=10/self.ax.figure.dpi)
-                    im.image.axes = self.ax
-                    ab = AnnotationBbox(im, (xi,yi), frameon=False, pad=0.0,)
-                    self.ax.add_artist(ab)
-            else:
-                self.ax.scatter(x,y,marker=".",color="white")
-                        
-                        
-        self.plots.draw()
+                self.ax.cla()
+                self.effortlabel.config(text="Siediti… 🙈")
+                self.window.update()
+                self.effortlabel.config(text="Fatica! 🫠")
+            self.draw()
 
+        return
+
+            
+
+    def draw(self):
+    
+        # Compute PI
+        Nriso = int(self.Nriso.get())
+        x = np.random.random(Nriso)
+        y = np.random.random(Nriso)
         self.pi=0
         for i in range(len(x)):
           if ( np.sqrt( (x[i]-0.5)**2+(y[i]-0.5)**2 )<0.5 ): self.pi+=1.0
         self.pi = self.pi/Nriso * 4
         self.pilabel.config(text="π = "+str(self.pi))
-        self.piacclabel.config(text="Precisione = "+f"{100*(1-abs(self.pi-np.pi)/np.pi) :.5f}"+"%")
+        self.piacclabel.config(text="Precisione: "+f"{100*(1-abs(self.pi-np.pi)/np.pi) :.5f}"+"%")
+
+        # Reset Plot
+        self.ax.cla()
+        self.ax.set_xlim(0,1)
+        self.ax.set_ylim(0,1)
+        self.ax.set_aspect('equal')
+        self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=2   ,color="lightskyblue") )
+        self.ax.add_patch( matplotlib.patches.Circle((0.5,0.5),radius=0.5 ,color="tab:blue") )
+
+        # Redraw plot (if feasible)
+        if(Nriso>=50000):
+            self.ax.text(0.1,0.5,"Troppi chicchi, immaginali!",fontdict=errorfont)
+            self.plots.draw()
+            return
+        if(self.switch_variable.get()=="Riso" and Nriso<5000):
+            self.ax.scatter(x,y,marker="")
+            for xi, yi in zip(x,y):
+                i =  np.random.randint(0,7)
+                image=self.ims[i]
+                im = OffsetImage(image, zoom=10/self.ax.figure.dpi)
+                im.image.axes = self.ax
+                ab = AnnotationBbox(im, (xi,yi), frameon=False, pad=0.0,)
+                self.ax.add_artist(ab)
+        else:
+            self.ax.scatter(x,y,marker=".",color="white")       
+                        
+        self.plots.draw()
+
+        return
 
 
-
-
-
+# Main
 paths=[]
 ims=[]
 for i in range(1,8):
