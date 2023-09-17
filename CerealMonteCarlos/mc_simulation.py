@@ -45,7 +45,7 @@ def metropolis(length,T,occupancies,indices,iNN,jNN):
          occupancies[indices[irand,0],indices[irand,1]]=0
          indices[irand,0] = xy_vic[0]
          indices[irand,1] = xy_vic[1]
-   return occupancies, indices, e_gain
+   return occupancies, indices
         
     
 def total_energy(occupancies,indices,iNN,jNN):
@@ -54,7 +54,7 @@ def total_energy(occupancies,indices,iNN,jNN):
    for n in range(Ntot):
       ix=indices[n,0]; iy=indices[n,1]
       for ik in range(6):
-         if(occupancies[iNN[ix,iy,ik],jNN[ix,iy,ik]]==1): Etot+=0.5
+         if(occupancies[iNN[ix,iy,ik],jNN[ix,iy,ik]]==1): Etot-=0.5
    return Etot
 
 def build_lattice(L): 

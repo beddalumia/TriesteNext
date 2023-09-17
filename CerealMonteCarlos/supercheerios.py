@@ -18,15 +18,15 @@ class myGUI:
         #---- Input labels, entries and data -------
         self.numpops = Label(win, text='Numero di cereali')
         self.numpops.config(font=('Arial', 22))
-        self.numpops.place(x=x0, y=y0)
+        self.numpops.place(x=x0, y=y0+100)
         self.Nflakes = Entry()
-        self.Nflakes.place(x=x0, y=y0+50)
+        self.Nflakes.place(x=x0, y=y0+150)
         self.Nflakes.insert(END, str(0))
         self.kinlabl = Label(win, text='Quanto agitiamo?')
         self.kinlabl.config(font=('Arial', 22))
-        self.kinlabl.place(x=x0, y=y0+100)
-        self.kinesis = Scale(win,from_=1,to=100,orient=HORIZONTAL)
-        self.kinesis.place(x=x0,y=y0+130)
+        self.kinlabl.place(x=x0, y=y0+200)
+        self.kinesis = Scale(win,from_=1,to=1000,orient=HORIZONTAL)
+        self.kinesis.place(x=x0,y=y0+230)
         self.cheerios = cheerios # png images
         #---- Parameter independent initialization -------
         self.occupancies = np.array([])
@@ -35,9 +35,13 @@ class myGUI:
         self.Nflakes_old = 0
         self.initialized = False
         # Compute button
-        self.btn1 = Button(win, text='Calcola')
+        self.btn1 = Button(win, text='Simula!')
         self.btn1.bind('<Button-1>', self.run)
-        self.btn1.place(x=x0, y=y0 + 200)
+        self.btn1.place(x=x0, y=y0+300)
+        # Output label
+        self.output = Label(win,text='Numero di legami: ')
+        self.output.config(font=('Arial', 22))
+        self.output.place(x=x0, y=y0+400)
 
         # Matplotlib window
         self.figure, self.ax = plt.subplots(figsize=(10, 10), dpi=100)
@@ -56,7 +60,7 @@ class myGUI:
 
         # Switch for rice or scatterplot (also lentils?)
         self.switch_frame = Frame(win)
-        self.switch_frame.place(x=x0,y=120)
+        self.switch_frame.place(x=x0,y=220)
         self.switch_variable = StringVar(value="heavy")
         self.riso_button = Radiobutton(self.switch_frame, text="Super GPU", variable=self.switch_variable,
                                        indicatoron=False, value="heavy", width=8)
@@ -70,8 +74,12 @@ class myGUI:
     def run(self,event):
          # Get all the input parameters
          Nflakes = int(self.Nflakes.get())
+         if Nflakes>350:
+             self.output.config(text="Troppi cereali, si versa! 😱")
+             self.ax.cla
+             return
          Nsteps=1  # Hard coded for now (ever?)
-         T=self.kinesis.get(); T = 0.1*T # Actual working scale
+         T=self.kinesis.get(); T = 0.01*T # Actual working scale
          print("T = "+str(T))
          # Retrieve the (pre-built) lattice coordinates and NN-list
          X, Y, iNN, jNN = self.x, self.y, self.i, self.j
@@ -82,18 +90,17 @@ class myGUI:
             # Draw an initial configuration of cereals in the lattice
             occupancies, indices = init_simulation(Nflakes,BowlSize)
             # Thermalize the Markov chain (100 steps)
-            occupancies, indices, e_gain = metropolis(100,T,occupancies,indices,iNN,jNN)
+            occupancies, indices = metropolis(100,T,occupancies,indices,iNN,jNN)
          else:
             # Or retrieve the stored state of the system, if any
             occupancies = self.occupancies
             indices = self.indices
-         # Compute the total energy (no need for visualization)
-         # > E_tot = total_energy(occupancies,indices,iNN,jNN)
          # Run the Markov chain for N steps
          while True:
-            occupancies, indices, e_gain = metropolis(Nsteps,T,occupancies,indices,iNN,jNN)
-            # Update the total energy (no need for visualization)
-            # > E_tot += e_gain
+            occupancies, indices = metropolis(Nsteps,T,occupancies,indices,iNN,jNN)
+            # Update the total energy
+            E_tot = total_energy(occupancies,indices,iNN,jNN)
+            self.output.config(text='Numero di legami: '+str(int(-E_tot)))
             # Store the state of the system (for smart restart)
             self.occupancies = occupancies
             self.indices = indices
@@ -127,7 +134,7 @@ def close_app():
    window.destroy()
    quit()
 button_close = Button(window, text = "Exit", command = close_app)
-button_close.place(x=80, y=50)
+button_close.place(x=80, y=100)
 
 # Configure the global window
 window.title('SuperCheerios')
