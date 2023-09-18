@@ -34,6 +34,7 @@ class myGUI:
         self.x,self.y,self.i,self.j = build_lattice(BowlSize)
         self.Nflakes_old = 0
         self.initialized = False
+        self.keeprunning = True
         # Compute button
         self.btn1 = Button(win, text='Simula!')
         self.btn1.bind('<Button-1>', self.run)
@@ -48,8 +49,8 @@ class myGUI:
 
         # Configure axes
         self.ax.set_facecolor('lightskyblue')
-        self.ax.scatter(self.x,self.y,marker=".",color="lightskyblue")
-        # > auto-defines xlim and ylim
+        self.ax.set_xlim([-0.5,20.0])
+        self.ax.set_ylim([-0.5,17.0])
         self.ax.set_xticks([])
         self.ax.set_yticks([])
         self.ax.set_aspect('equal')
@@ -76,44 +77,53 @@ class myGUI:
          Nflakes = int(self.Nflakes.get())
          if Nflakes>350:
              self.output.config(text="Troppi cereali, si versa! 😱")
-             self.ax.cla
-             return
-         Nsteps=1  # Hard coded for now (ever?)
-         T=self.kinesis.get(); T = 0.01*T # Actual working scale
-         print("T = "+str(T))
-         # Retrieve the (pre-built) lattice coordinates and NN-list
-         X, Y, iNN, jNN = self.x, self.y, self.i, self.j
-         if self.Nflakes_old != Nflakes:
-             # Discard initialization
-             self.initialized = False
-         if not(self.initialized):
-            # Draw an initial configuration of cereals in the lattice
-            occupancies, indices = init_simulation(Nflakes,BowlSize)
-            # Thermalize the Markov chain (100 steps)
-            occupancies, indices = metropolis(100,T,occupancies,indices,iNN,jNN)
+             self.ax.cla()
+             self.ax.set_xlim([-0.5,20.0])
+             self.ax.set_ylim([-0.5,17.0])
+             self.ax.set_xticks([])
+             self.ax.set_yticks([])
+             self.ax.set_aspect('equal')
+             self.keeprunning = False
+             self.plots.draw()
+             self.window.update()
          else:
-            # Or retrieve the stored state of the system, if any
-            occupancies = self.occupancies
-            indices = self.indices
-         # Run the Markov chain for N steps
-         while True:
-            occupancies, indices = metropolis(Nsteps,T,occupancies,indices,iNN,jNN)
-            # Update the total energy
-            E_tot = total_energy(occupancies,indices,iNN,jNN)
-            self.output.config(text='Numero di legami: '+str(int(-E_tot)))
-            # Store the state of the system (for smart restart)
-            self.occupancies = occupancies
-            self.indices = indices
-            self.Nflakes_old = Nflakes
-            self.initialized = True
-            # Draw latest Metropolis configuration 
-            if(self.switch_variable.get()=="heavy"):
-                  draw_bowl_cheerios(self.ax,X,Y,occupancies,self.cheerios)
+            self.keeprunning = True
+            Nsteps=1  # Hard coded for now (ever?)
+            T=self.kinesis.get(); T = 0.01*T # Actual working scale
+            print("T = "+str(T))
+            # Retrieve the (pre-built) lattice coordinates and NN-list
+            X, Y, iNN, jNN = self.x, self.y, self.i, self.j
+            if self.Nflakes_old != Nflakes:
+                # Discard initialization
+                self.initialized = False
+            if not(self.initialized):
+                # Draw an initial configuration of cereals in the lattice
+                occupancies, indices = init_simulation(Nflakes,BowlSize)
+                # Thermalize the Markov chain (100 steps)
+                occupancies, indices = metropolis(100,T,occupancies,indices,iNN,jNN)
             else:
-                  draw_bowl_cartoon(self.ax,X,Y,occupancies)      
-            # Refresh matplotlib window          
-            self.plots.draw()
-            self.window.update()
+                # Or retrieve the stored state of the system, if any
+                occupancies = self.occupancies
+                indices = self.indices
+            # Run the Markov chain for N steps
+            while self.keeprunning:
+                occupancies, indices = metropolis(Nsteps,T,occupancies,indices,iNN,jNN)
+                # Update the total energy
+                E_tot = total_energy(occupancies,indices,iNN,jNN)
+                self.output.config(text='Numero di legami: '+str(int(-E_tot)))
+                # Store the state of the system (for smart restart)
+                self.occupancies = occupancies
+                self.indices = indices
+                self.Nflakes_old = Nflakes
+                self.initialized = True
+                # Draw latest Metropolis configuration 
+                if(self.switch_variable.get()=="heavy"):
+                    draw_bowl_cheerios(self.ax,X,Y,occupancies,self.cheerios)
+                else:
+                    draw_bowl_cartoon(self.ax,X,Y,occupancies)      
+                # Refresh matplotlib window          
+                self.plots.draw()
+                self.window.update()
 
 
 # Read the pictures
