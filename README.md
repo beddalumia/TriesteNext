@@ -10,7 +10,7 @@ Overall the idea is to give a flavour of what mathematical and computational mod
 
 <kbd> ![ricepie_snapshot](.resources/ricepie.snapshot.png)
 
-## `SuperCheerios/superbowl.py`
+## `SuperCheerios/breakfast.py`
 A more sophisticated case for the Montecarlo technique. We simulate here the self-assembly of cereals in a bowl of water (milk?). For details on the specific water physics at play please take a look to [this pop-science video](https://youtu.be/mbKAwk-OG_w?si=RZitwRD6uLqf2kHI) or the [original paper](
 https://doi.org/10.48550/arXiv.cond-mat/0411688) it is based on.    
 The simulation amounts to a simple Metropolis scheme, to generate equilibrium configurations of the cereals, assuming a very simple model for their water-mediated attraction: a gain in energy whenever there is contact between two flakes. The temperature, entering the statistical weight, would just represent the amount of "shaking" one applies to the bowl containing the cereal. To make the simulation the most credible, we tuned the Markovian update as to avoid abrupt changes from one configuration to the next, at the expense of sampling efficiency (which we do not target in any way, as the aim is visual in nature).    
