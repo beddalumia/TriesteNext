@@ -1,4 +1,4 @@
-# Trieste Next 2023
+# Trieste Next 2024
 Material for the SISSA stand, at the Trieste Next popular science initiative, 2023 and 2024 editions. With a general theme about quantum phenomena you can hold with your hands (or see with your eyes, in the regular life), the main focus of our activites verged towards superconductivity, naturally following the research activity of the group.
 
 ## `DrawRiceGetPi/ricepie.py`
